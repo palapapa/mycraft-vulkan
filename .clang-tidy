@@ -1,0 +1,9 @@
+Checks:
+  - "*"
+  - -altera-*
+  - -android-cloexec-*
+  - -llvmlibc-*
+  - -fuchsia-*
+CheckOptions:
+  modernize-use-default-member-init.UseAssignment: true
+  readability-implicit-bool-conversion.AllowPointerConditions: true

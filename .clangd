@@ -1,0 +1,19 @@
+CompileFlags:
+  CompilationDatabase: build
+Diagnostics:
+  ClangTidy:
+    FastCheckFilter: None
+  Includes:
+    AnalyzeAngledIncludes: true
+  MissingIncludes: Strict
+Completion:
+  MacroFilter: FuzzyMatch
+InlayHints:
+  BlockEnd: true
+  DefaultArguments: true
+  TypeNameLimit: 0
+Hover:
+  ShowAKA: false
+  MacroContentsLimit: 0
+Documentation:
+  CommentFormat: Doxygen

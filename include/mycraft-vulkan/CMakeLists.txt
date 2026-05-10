@@ -1,0 +1,5 @@
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS *.h)
+target_sources(mycraft-vulkan PRIVATE
+    FILE_SET HEADERS
+    BASE_DIRS .
+    FILES ${HEADERS})
