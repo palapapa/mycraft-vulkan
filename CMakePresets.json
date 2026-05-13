@@ -1,0 +1,50 @@
+{
+  "version": 10,
+  "configurePresets": [
+    {
+      "name": "_base",
+      "hidden": true,
+      "displayName": "Base config",
+      "description": "Base configurePreset for other preserts to inherit. Do not use directly.",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "debug",
+      "inherits": "_base",
+      "displayName": "Debug config",
+      "description": "Configures the project in debug mode.",
+      "binaryDir": "build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_VERBOSE_MAKEFILE": true
+      }
+    },
+    {
+      "name": "release",
+      "inherits": "_base",
+      "displayName": "Release config",
+      "description": "Configures the project in release mode.",
+      "binaryDir": "build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "displayName": "Build using the Debug config",
+      "description": "Build the project using the build system configured by the \"debug\" preset.",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "release",
+      "displayName": "Build using the Release config",
+      "description": "Build the project using the build system configured by the \"release\" preset.",
+      "configurePreset": "release"
+    }
+  ]
+}

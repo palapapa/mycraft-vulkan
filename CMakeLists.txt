@@ -7,8 +7,16 @@ project(mycraft-vulkan
 include(CheckIPOSupported)
 option(ENABLE_CLANG_TIDY
     "Whether to run clang-tidy when building."
-    ${PROJECT_IS_TOP_LEVEL})
+    OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+if(PROJECT_IS_TOP_LEVEL)
+    file(CREATE_LINK
+        "${CMAKE_BINARY_DIR}/compile_commands.json"
+        "${CMAKE_SOURCE_DIR}/compile_commands.json"
+        SYMBOLIC)
+endif()
+
 add_executable(mycraft-vulkan)
 target_compile_features(mycraft-vulkan PRIVATE cxx_std_26)
 set(GCC_WARNINGS
@@ -33,19 +41,38 @@ target_compile_options(mycraft-vulkan PRIVATE
     "$<$<CXX_COMPILER_ID:GNU>:${GCC_WARNINGS}>"
     "$<$<CXX_COMPILER_ID:Clang>:${CLANG_WARNINGS}>")
 check_ipo_supported(RESULT IS_IPO_SUPPORTED)
-if (IS_IPO_SUPPORTED)
+
+if(IS_IPO_SUPPORTED)
     set_target_properties(mycraft-vulkan PROPERTIES
         INTERPROCEDURAL_OPTIMIZATION TRUE
         INTERPROCEDURAL_OPTIMIZATION_DEBUG FALSE)
-endif ()
-if (ENABLE_CLANG_TIDY)
+endif()
+
+if(ENABLE_CLANG_TIDY)
     find_program(CLANG_TIDY NAMES clang-tidy)
-    if (CLANG_TIDY)
+
+    if(CLANG_TIDY)
         set_target_properties(mycraft-vulkan PROPERTIES
             CXX_CLANG_TIDY "${CLANG_TIDY};-p;${CMAKE_BINARY_DIR}")
-    else ()
+    else()
         message(WARNING "ENABLE_CLANG_TIDY is enabled but clang-tidy is not found. Skipping.")
-    endif ()
-endif ()
+    endif()
+endif()
+
+find_package(quill CONFIG REQUIRED)
+find_package(flecs CONFIG REQUIRED)
+find_package(Vulkan REQUIRED)
+find_package(VulkanHeaders CONFIG REQUIRED)
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
+target_link_libraries(mycraft-vulkan
+    PRIVATE quill::quill
+    PRIVATE $<IF:$<TARGET_EXISTS:flecs::flecs>,flecs::flecs,flecs::flecs_static>
+    PRIVATE Vulkan::Vulkan
+    PRIVATE Vulkan::Headers
+    PRIVATE GPUOpen::VulkanMemoryAllocator
+    PRIVATE glfw
+    PRIVATE glm::glm)
 add_subdirectory(src)
 add_subdirectory(include/mycraft-vulkan)

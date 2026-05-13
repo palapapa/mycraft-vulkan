@@ -1,0 +1,15 @@
+{
+  "dependencies": [
+    "quill",
+    "flecs",
+    "vulkan-headers",
+    "vulkan-memory-allocator",
+    {
+      "name": "glfw3",
+      "features": [
+        "wayland"
+      ]
+    },
+    "glm"
+  ]
+}
