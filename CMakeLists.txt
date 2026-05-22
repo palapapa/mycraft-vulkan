@@ -19,6 +19,11 @@ endif()
 
 add_executable(mycraft-vulkan)
 target_compile_features(mycraft-vulkan PRIVATE cxx_std_26)
+target_compile_definitions(mycraft-vulkan PRIVATE
+    VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
+    VULKAN_HPP_USE_STD_EXPECTED
+    VK_NO_PROTOTYPES=1 # When VK_NO_PROTOTYPES=1, VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1 automatically.
+    QUILL_DISABLE_NON_PREFIXED_MACROS)
 set(GCC_WARNINGS
     -Wall
     -Wextra
@@ -36,6 +41,7 @@ set(CLANG_WARNINGS
     -Wno-weak-vtables
     -Wno-exit-time-destructors
     -Wno-global-constructors
+    -Wno-unused-macros
     -ferror-limit=0)
 target_compile_options(mycraft-vulkan PRIVATE
     "$<$<CXX_COMPILER_ID:GNU>:${GCC_WARNINGS}>"
@@ -60,19 +66,22 @@ if(ENABLE_CLANG_TIDY)
 endif()
 
 find_package(quill CONFIG REQUIRED)
-find_package(flecs CONFIG REQUIRED)
+find_package(EnTT CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(VulkanHeaders CONFIG REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(Ktx CONFIG REQUIRED)
+find_package(fastgltf CONFIG REQUIRED)
 target_link_libraries(mycraft-vulkan
     PRIVATE quill::quill
-    PRIVATE $<IF:$<TARGET_EXISTS:flecs::flecs>,flecs::flecs,flecs::flecs_static>
-    PRIVATE Vulkan::Vulkan
+    PRIVATE EnTT::EnTT
     PRIVATE Vulkan::Headers
     PRIVATE GPUOpen::VulkanMemoryAllocator
     PRIVATE glfw
-    PRIVATE glm::glm)
+    PRIVATE glm::glm
+    PRIVATE KTX::ktx
+    PRIVATE fastgltf::fastgltf)
 add_subdirectory(src)
 add_subdirectory(include/mycraft-vulkan)

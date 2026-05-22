@@ -4,6 +4,7 @@ Checks:
   - -android-cloexec-*
   - -llvmlibc-*
   - -fuchsia-*
+  - -readability-identifier-length
 CheckOptions:
   modernize-use-default-member-init.UseAssignment: true
   readability-implicit-bool-conversion.AllowPointerConditions: true

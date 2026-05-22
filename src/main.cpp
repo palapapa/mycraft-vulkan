@@ -1,7 +1,7 @@
-#include <iostream>
-
-using std::cout;
+#include "logger.hpp"
 
 auto main() -> int {
-    cout << "Hello, World!";
+    setup_quill();
+    LOG_INFO("App starting");
+    LOG_INFO("App exiting.");
 }
