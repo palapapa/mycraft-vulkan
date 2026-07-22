@@ -1,5 +1,23 @@
+If:
+  PathExclude: build/.*
 Diagnostics:
   ClangTidy:
+    Add: "*"
+    Remove: [
+      altera-*,
+      android-cloexec-*,
+      llvmlibc-*,
+      fuchsia-*,
+      readability-identifier-length,
+      readability-function-cognitive-complexity,
+      cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
+      concurrency-mt-unsafe
+    ]
+    CheckOptions: 
+      modernize-use-default-member-init.UseAssignment: true
+      readability-implicit-bool-conversion.AllowPointerConditions: true
+      modernize-use-trailing-return-type.TransformLambdas: none
+      readability-redundant-inline-specifier.StrictMode: true
     FastCheckFilter: None
   Includes:
     AnalyzeAngledIncludes: true
@@ -11,7 +29,12 @@ InlayHints:
   DefaultArguments: true
   TypeNameLimit: 0
 Hover:
-  ShowAKA: false
+  ShowAKA: true
   MacroContentsLimit: 0
 Documentation:
   CommentFormat: Doxygen
+---
+If:
+  PathMatch: build/.*
+CompileFlags:
+  Remove: -W*

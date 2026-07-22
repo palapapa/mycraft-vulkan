@@ -1,9 +1,9 @@
 {
+  "builtin-baseline": "a0b1c8d3a477c1cb4813d8e127a56961707ca42b",
   "dependencies": [
-    "quill",
+    "boost-leaf",
     "entt",
-    "vulkan-headers",
-    "vulkan-memory-allocator",
+    "fastgltf",
     {
       "name": "glfw3",
       "features": [
@@ -11,7 +11,11 @@
       ]
     },
     "glm",
-    "fastgltf",
-    "ktx"
+    "ktx",
+    "quill",
+    "vk-bootstrap",
+    "vulkan-headers",
+    "vulkan-memory-allocator",
+    "magic-enum"
   ]
 }
