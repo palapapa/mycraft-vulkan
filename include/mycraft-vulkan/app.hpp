@@ -1,5 +1,5 @@
 #pragma once
-#include "constants.hpp"
+#include "config.hpp"
 #include "glfw-helpers.hpp"
 #include "leaf-healpers.hpp"
 #include "logger.hpp"
@@ -11,10 +11,10 @@
 #include <boost/leaf/error.hpp>
 #include <boost/leaf/result.hpp>
 #include <cstdint>
-#include <cstdlib>
 #include <optional>
 #include <quill/HelperMacros.h>
-#include <quill/std/Vector.h> // IWYU pragma: keep
+#include <quill/core/LogLevel.h>
+#include <quill/std/Vector.h> // IWYU pragma: keep (required by quill)
 #include <ranges>
 #include <utility>
 #include <vector>
@@ -42,14 +42,14 @@ class App {
         main_loop();
     }
 
-    static auto create() -> boost::leaf::result<App> {
+    static auto create(const Config &config) -> boost::leaf::result<App> {
         auto window = create_window();
         if (!window) {
             LOG_ERROR("Could not create glfw window.");
             return BOOST_LEAF_NEW_ERROR(AppCreationError::WindowCreation);
         }
         auto context = vk::raii::Context();
-        BOOST_LEAF_AUTO(vkb_instance, create_instance());
+        BOOST_LEAF_AUTO(vkb_instance, create_instance(config.log_level));
         BOOST_LEAF_AUTO(vk_surface, add_error(window->create_surface(vkb_instance), AppCreationError::SurfaceCreation));
         BOOST_LEAF_AUTO(vkb_physical_device, create_physical_device(vkb_instance, vk_surface));
         BOOST_LEAF_AUTO(vkb_device, create_device(vkb_physical_device));
@@ -73,11 +73,12 @@ class App {
         }
         auto swapchain_images = *vk_swapchain_images_result | std::views::transform([](VkImage image) { return vk::Image{image}; }) |
                                 std::ranges::to<std::vector<vk::Image>>();
-        return App(std::move(*window), std::move(context), std::move(instance), std::move(debug_messenger), std::move(surface),
+        return App(config, std::move(*window), std::move(context), std::move(instance), std::move(debug_messenger), std::move(surface),
                    std::move(physical_device), std::move(device), std::move(graphics_queue), std::move(swapchain), std::move(swapchain_images));
     }
 
   private:
+    Config config;
     GlfwWindow window;
     vk::raii::Context context;
     vk::raii::Instance instance;
@@ -100,12 +101,13 @@ class App {
     static constexpr auto REQUIRED_DEVICE_FEATURES_14 = VkPhysicalDeviceVulkan14Features{};
 #pragma clang diagnostic pop
 
-    App(GlfwWindow &&window, vk::raii::Context &&context, vk::raii::Instance &&instance, vk::raii::DebugUtilsMessengerEXT &&debug_messenger,
-        vk::raii::SurfaceKHR &&surface, vk::raii::PhysicalDevice &&physical_device, vk::raii::Device &&device, vk::raii::Queue &&graphics_queue,
-        vk::raii::SwapchainKHR &&swapchain, std::vector<vk::Image> &&swapchain_images)
-        : window(std::move(window)), context(std::move(context)), instance(std::move(instance)), debug_messenger(std::move(debug_messenger)),
-          surface(std::move(surface)), physical_device(std::move(physical_device)), device(std::move(device)),
-          graphics_queue(std::move(graphics_queue)), swapchain(std::move(swapchain)), swapchain_images(std::move(swapchain_images)) {
+    App(const Config &config, GlfwWindow &&window, vk::raii::Context &&context, vk::raii::Instance &&instance,
+        vk::raii::DebugUtilsMessengerEXT &&debug_messenger, vk::raii::SurfaceKHR &&surface, vk::raii::PhysicalDevice &&physical_device,
+        vk::raii::Device &&device, vk::raii::Queue &&graphics_queue, vk::raii::SwapchainKHR &&swapchain, std::vector<vk::Image> &&swapchain_images)
+        : config(config), window(std::move(window)), context(std::move(context)), instance(std::move(instance)),
+          debug_messenger(std::move(debug_messenger)), surface(std::move(surface)), physical_device(std::move(physical_device)),
+          device(std::move(device)), graphics_queue(std::move(graphics_queue)), swapchain(std::move(swapchain)),
+          swapchain_images(std::move(swapchain_images)) {
     }
 
     static auto create_window() -> std::optional<GlfwWindow> {
@@ -120,7 +122,7 @@ class App {
         }
     }
 
-    static auto create_instance() -> boost::leaf::result<vkb::Instance> {
+    static auto create_instance(quill::LogLevel log_level) -> boost::leaf::result<vkb::Instance> {
         auto instance_builder = vkb::InstanceBuilder();
         instance_builder.set_app_name("mycraft-vulkan")
             .set_app_version(0, 0)
@@ -137,10 +139,7 @@ class App {
         // extensions contained should be available.
         instance_builder.enable_extensions(glfw_required_extension_count, glfw_required_extensions);
 #ifndef NDEBUG
-        const auto message_severity = log_level_env_var_to_vk_debug_utils_message_serverity_flags(
-            std::getenv(LOG_LEVEL_ENV_VAR_NAME), vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
-                                                     vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-                                                     vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
+        const auto message_severity = log_level_to_vk_debug_utils_message_serverity_flags(log_level);
         const auto message_type = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
                                   vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation;
         instance_builder.request_validation_layers()
@@ -188,7 +187,8 @@ class App {
         const auto candidate_physical_device_names_result = physical_device_selector.select_device_names();
         if (!candidate_physical_device_names_result) {
             LOG_WARNING("Could not get candidate physical device names. Error: {}", candidate_physical_device_names_result.full_error());
-        } else {
+        }
+        else {
             LOG_INFO("Candidate physical devices: {}", *candidate_physical_device_names_result);
         }
         auto candidate_physical_devices_result = physical_device_selector.select_devices();

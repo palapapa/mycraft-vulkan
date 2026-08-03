@@ -85,6 +85,7 @@ find_package(Ktx CONFIG REQUIRED)
 find_package(fastgltf CONFIG REQUIRED)
 find_package(Boost REQUIRED COMPONENTS leaf)
 find_package(vk-bootstrap CONFIG REQUIRED)
+find_package(CLI11 CONFIG REQUIRED)
 target_link_libraries(mycraft-vulkan
     PRIVATE quill::quill
     PRIVATE EnTT::EnTT
@@ -95,6 +96,7 @@ target_link_libraries(mycraft-vulkan
     PRIVATE KTX::ktx
     PRIVATE fastgltf::fastgltf
     PRIVATE Boost::leaf
-    PRIVATE vk-bootstrap::vk-bootstrap)
+    PRIVATE vk-bootstrap::vk-bootstrap
+    PRIVATE CLI11::CLI11)
 add_subdirectory(src)
 add_subdirectory(include/mycraft-vulkan)

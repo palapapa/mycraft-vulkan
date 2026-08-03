@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include "config.hpp"
 #include "glfw-helpers.hpp"
 #include "leaf-healpers.hpp"
 #include "logger.hpp"
@@ -7,8 +8,10 @@
 #include <boost/leaf/result.hpp>
 #include <cstdlib>
 
-auto main() -> int {
+auto main(int argc, char *argv[]) -> int {
     using namespace mycraft_vulkan; // NOLINT(google-build-using-namespace)
+    auto config = parse_arguments(argc, argv);
+    setup_logger(config.log_level);
     LOG_INFO("App starting");
     LOG_INFO("Using GLFW version {}.", glfwGetVersionString());
     glfwSetErrorCallback(glfw_error_callback);
@@ -22,8 +25,8 @@ auto main() -> int {
         return EXIT_FAILURE;
     }
     return try_handle_all_relaxed(
-        []() -> boost::leaf::result<int> {
-            BOOST_LEAF_AUTO(app, App::create());
+        [&]() -> boost::leaf::result<int> {
+            BOOST_LEAF_AUTO(app, App::create(config));
             app.run();
             LOG_INFO("App exiting.");
             return EXIT_SUCCESS;

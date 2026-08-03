@@ -11,7 +11,12 @@ Diagnostics:
       readability-identifier-length,
       readability-function-cognitive-complexity,
       cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
-      concurrency-mt-unsafe
+      concurrency-mt-unsafe,
+      llvm-prefer-static-over-anonymous-namespace,
+      cppcoreguidelines-avoid-c-arrays, # Already checked by modernize-avoid-c-arrays
+      hicpp-avoid-c-arrays, # Already checked by modernize-avoid-c-arrays
+      bugprone-throwing-static-initialization,
+      cert-err58-cpp
     ]
     CheckOptions: 
       modernize-use-default-member-init.UseAssignment: true

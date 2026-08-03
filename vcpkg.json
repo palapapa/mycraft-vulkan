@@ -16,6 +16,7 @@
     "vk-bootstrap",
     "vulkan-headers",
     "vulkan-memory-allocator",
-    "magic-enum"
+    "magic-enum",
+    "cli11"
   ]
 }

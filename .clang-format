@@ -2,3 +2,7 @@ BasedOnStyle: LLVM
 IndentWidth: 4
 AllowShortFunctionsOnASingleLine: None
 ColumnLimit: 150
+BreakBeforeBraces: Custom
+BraceWrapping:
+  BeforeElse: true
+  BeforeCatch: true
