@@ -32,7 +32,7 @@ const auto LOG_LEVEL_OPTION_VALUE_TO_QUILL_LOG_LEVEL = std::unordered_map<std::s
 
 constexpr auto log_level_to_vk_debug_utils_message_serverity_flags(quill::LogLevel log_level) -> vk::DebugUtilsMessageSeverityFlagsEXT {
     using Severity = vk::DebugUtilsMessageSeverityFlagBitsEXT;
-    switch (log_level) { // NOLINT(switch)
+    switch (log_level) {
     case quill::LogLevel::TraceL3:
     case quill::LogLevel::TraceL2:
     case quill::LogLevel::TraceL1:

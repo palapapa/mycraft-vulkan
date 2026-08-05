@@ -27,21 +27,30 @@ namespace mycraft_vulkan {
 enum class AppCreationError : uint8_t {
     WindowCreation,
     InstanceCreation,
-    DebugMessengerCreation,
     SurfaceCreation,
     PhysicalDeviceCreation,
     DeviceCreation,
     SwapchainCreation,
     SwapchainImagesCreation,
+    SwapchainImageViewsCreation,
     GraphicsQueueCreation
 };
 
+/// @brief The root object of this app. It manages various resources and is
+/// responsible for rendering and event processing.
 class App {
   public:
     auto run() -> void {
         main_loop();
     }
 
+    /// @brief Creates @ref App.
+    ///
+    /// @param config The config to use.
+    ///
+    /// @return @ref AppCreationError Something went wrong with the creation.
+    ///
+    /// @return @ref App The created @ref App.
     static auto create(const Config &config) -> boost::leaf::result<App> {
         auto window = create_window();
         if (!window) {
@@ -71,8 +80,9 @@ class App {
             LOG_ERROR("Could not get the swapchain images. Error: {}", vk_swapchain_images_result.full_error());
             return BOOST_LEAF_NEW_ERROR(AppCreationError::SwapchainImagesCreation, vk_swapchain_images_result.full_error());
         }
-        auto swapchain_images = *vk_swapchain_images_result | std::views::transform([](VkImage image) { return vk::Image{image}; }) |
+        auto swapchain_images = *vk_swapchain_images_result | std::views::transform([](VkImage image) { return vk::Image(image); }) |
                                 std::ranges::to<std::vector<vk::Image>>();
+        BOOST_LEAF_AUTO(swapchain_image_views, create_swapchain_image_views(device, swapchain_images, vk::Format(vkb_swapchain.image_format)));
         return App(config, std::move(*window), std::move(context), std::move(instance), std::move(debug_messenger), std::move(surface),
                    std::move(physical_device), std::move(device), std::move(graphics_queue), std::move(swapchain), std::move(swapchain_images));
     }
@@ -89,6 +99,7 @@ class App {
     vk::raii::Queue graphics_queue;
     vk::raii::SwapchainKHR swapchain;
     std::vector<vk::Image> swapchain_images;
+    std::vector<vk::raii::ImageView> swapchain_image_views;
     static constexpr auto WINDOW_HEIGHT = 600;
     static constexpr auto WINDOW_WIDTH = 800;
     static constexpr auto REQUIRED_DEVICE_EXTENSIONS = std::array<const char *, 0>{};
@@ -228,6 +239,26 @@ class App {
             return BOOST_LEAF_NEW_ERROR(AppCreationError::SwapchainCreation, swapchain_result.full_error());
         }
         return *swapchain_result;
+    }
+
+    static auto create_swapchain_image_views(const vk::raii::Device &device, const std::vector<vk::Image> &swapchain_images,
+                                             const vk::Format &swapchain_image_format) -> boost::leaf::result<std::vector<vk::raii::ImageView>> {
+        auto result = std::vector<vk::raii::ImageView>();
+        for (const auto &swapchain_image : swapchain_images) {
+            const auto image_view_create_info = vk::ImageViewCreateInfo{
+                .image = swapchain_image,
+                .viewType = vk::ImageViewType::e2D,
+                .format = swapchain_image_format,
+                .subresourceRange = {
+                    .aspectMask = vk::ImageAspectFlagBits::eColor, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1}};
+            auto swapchain_image_view = device.createImageView(image_view_create_info);
+            if (!swapchain_image_view) {
+                LOG_ERROR("Could not create the swapchain image views. Error: {}", swapchain_image_view.error());
+                return BOOST_LEAF_NEW_ERROR(AppCreationError::SwapchainImageViewsCreation, swapchain_image_view.error());
+            }
+            result.emplace_back(std::move(*swapchain_image_view));
+        }
+        return result;
     }
 };
 } // namespace mycraft_vulkan

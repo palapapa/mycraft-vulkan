@@ -12,3 +12,5 @@ _deps
 CMakeUserPresets.json
 /build/
 /.cache/
+/docs/html/
+/docs/warnings.log

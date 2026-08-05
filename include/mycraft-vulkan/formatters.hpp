@@ -18,14 +18,14 @@
 #include <vulkan/vulkan_to_string.hpp>
 
 namespace vk {
-/// @brief When a @ref vk::Result is logged through quill, this converts the
-/// error code to a string representation automatically.
+/// @brief When a `vk::Result` is logged through quill, this converts the error
+/// code to a string representation automatically.
 inline auto operator<<(std::ostream &out, Result result) -> std::ostream & {
     return out << to_string(result);
 }
 } // namespace vk
 
-/// @brief When a raw @ref VkResult is logged through quill, this converts the
+/// @brief When a raw `VkResult` is logged through quill, this converts the
 /// error code to a string representation automatically.
 inline auto operator<<(std::ostream &out, VkResult result) -> std::ostream & {
     return out << vk::to_string(static_cast<vk::Result>(result));
@@ -110,27 +110,27 @@ class Cli11Formatter : public CLI::Formatter {
     }
 };
 
-/// @brief Returns a @ref CLI::CheckedTransformer with its @ref
-/// CLI::CheckedTransformer::description called and set to a more readable form
-/// than the default. This is used to fix
+/// @brief Returns a `CLI::CheckedTransformer` with its
+/// `CLI::CheckedTransformer::description` called and set to a more readable
+/// form than the default. This is used to fix
 /// https://github.com/CLIUtils/CLI11/issues/554, since the default help message
-/// generated with @ref CLI::CheckedTransformer is quite unreadable. The
-/// generated help message displays the allowed keys in `mapping`, sorted.
+/// generated with `CLI::CheckedTransformer` is quite unreadable. The generated
+/// help message displays the allowed keys in `mapping`, sorted.
 ///
 /// @tparam Mapping An iterable with tuple-like elements. Must be an input range
 /// whose 0-th elements of its tuple-like elements must be able to be used to
-/// construct a @ref std::string.
+/// construct a `std::string`.
 ///
 /// @tparam Filters The filter type as passed to the second constructor argument
-/// of @ref CLI::CheckedTransformer.
+/// of `CLI::CheckedTransformer`.
 ///
 /// @param mapping The mapping that should be passed the the first constructor
-/// argument of @ref CLI::CheckedTransformer.
+/// argument of `CLI::CheckedTransformer`.
 ///
 /// @param filters The filters that should be passed the the second constructor
-/// argument of @ref CLI::CheckedTransformer.
+/// argument of `CLI::CheckedTransformer`.
 ///
-/// @return A @ref CLI::CheckedTransformer with modified description.
+/// @return A `CLI::CheckedTransformer` with modified description.
 template <typename Mapping, typename... Filters>
     requires std::ranges::input_range<Mapping> && requires(const std::remove_reference_t<std::ranges::range_reference_t<Mapping>> &mapping_entry) {
         requires std::constructible_from<std::string, decltype(std::get<0>(mapping_entry))>;

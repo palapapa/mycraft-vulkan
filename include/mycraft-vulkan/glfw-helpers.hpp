@@ -48,8 +48,8 @@ class GlfwContext {
 
 enum class GlfwWindowError : uint8_t { SurfaceCreation };
 
-/// @brief An RAII wrapper for @ref GLFWWindow to automatically create and
-/// destroy it.
+/// @brief An RAII wrapper for `GLFWWindow` to automatically create and destroy
+/// it.
 class GlfwWindow {
   public:
     GlfwWindow(const GlfwWindow &) = delete;
@@ -73,8 +73,8 @@ class GlfwWindow {
     }
 
     /// @brief Creates @ref GlfwWindow. The arguments are passed straight to
-    /// @ref glfwCreateWindow. If you need to set window hints, set them using
-    /// @ref glfwWindowHint before calling this.
+    /// `glfwCreateWindow`. If you need to set window hints, set them using
+    /// `glfwWindowHint` before calling this.
     ///
     /// @return The value is not present if the window failed to create.
     static auto create(int width, int height, const char *title, GLFWmonitor *monitor, GLFWwindow *share) -> std::optional<GlfwWindow> {
