@@ -22,12 +22,12 @@ constexpr auto LOG_LEVEL_TRACE_L1_OPTION_VALUE = "tracel1";
 constexpr auto LOG_LEVEL_TRACE_L2_OPTION_VALUE = "tracel2";
 constexpr auto LOG_LEVEL_TRACE_L3_OPTION_VALUE = "tracel3";
 constexpr auto LOG_LEVEL_OFF_OPTION_VALUE = "off";
-const auto LOG_LEVEL_OPTION_VALUE_TO_QUILL_LOG_LEVEL = std::unordered_map<std::string, quill::LogLevel>{
-    {LOG_LEVEL_CRITICAL_OPTION_VALUE, quill::LogLevel::Critical}, {LOG_LEVEL_ERROR_OPTION_VALUE, quill::LogLevel::Error},
-    {LOG_LEVEL_WARNING_OPTION_VALUE, quill::LogLevel::Warning},   {LOG_LEVEL_INFO_OPTION_VALUE, quill::LogLevel::Info},
-    {LOG_LEVEL_NOTICE_OPTION_VALUE, quill::LogLevel::Notice},     {LOG_LEVEL_DEBUG_OPTION_VALUE, quill::LogLevel::Debug},
-    {LOG_LEVEL_TRACE_L1_OPTION_VALUE, quill::LogLevel::TraceL1},  {LOG_LEVEL_TRACE_L2_OPTION_VALUE, quill::LogLevel::TraceL2},
-    {LOG_LEVEL_TRACE_L3_OPTION_VALUE, quill::LogLevel::TraceL3},  {LOG_LEVEL_OFF_OPTION_VALUE, quill::LogLevel::None},
+const auto LOG_LEVEL_OPTION_VALUE_TO_QUILL_LOG_LEVEL = std::unordered_map<std::string, quill::LogLevel> {
+    { LOG_LEVEL_CRITICAL_OPTION_VALUE, quill::LogLevel::Critical }, { LOG_LEVEL_ERROR_OPTION_VALUE, quill::LogLevel::Error },
+    { LOG_LEVEL_WARNING_OPTION_VALUE, quill::LogLevel::Warning },   { LOG_LEVEL_INFO_OPTION_VALUE, quill::LogLevel::Info },
+    { LOG_LEVEL_NOTICE_OPTION_VALUE, quill::LogLevel::Notice },     { LOG_LEVEL_DEBUG_OPTION_VALUE, quill::LogLevel::Debug },
+    { LOG_LEVEL_TRACE_L1_OPTION_VALUE, quill::LogLevel::TraceL1 },  { LOG_LEVEL_TRACE_L2_OPTION_VALUE, quill::LogLevel::TraceL2 },
+    { LOG_LEVEL_TRACE_L3_OPTION_VALUE, quill::LogLevel::TraceL3 },  { LOG_LEVEL_OFF_OPTION_VALUE, quill::LogLevel::None },
 };
 
 constexpr auto log_level_to_vk_debug_utils_message_serverity_flags(quill::LogLevel log_level) -> vk::DebugUtilsMessageSeverityFlagsEXT {
@@ -77,6 +77,6 @@ inline auto parse_arguments(int argc, char *argv[]) -> Config { // NOLINT(modern
     catch (const CLI::ParseError &e) {
         std::exit(argument_parser.exit(e));
     }
-    return {.log_level = log_level};
+    return { .log_level = log_level };
 }
 } // namespace mycraft_vulkan

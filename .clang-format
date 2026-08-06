@@ -6,3 +6,5 @@ BreakBeforeBraces: Custom
 BraceWrapping:
   BeforeElse: true
   BeforeCatch: true
+SpaceBeforeCpp11BracedList: true
+Cpp11BracedListStyle: Block

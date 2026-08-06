@@ -90,6 +90,7 @@ class GlfwWindow {
         return glfwWindowShouldClose(window);
     }
 
+    /// @return `VkSurfaceKHR` or @ref GlfwWindowError.
     auto create_surface(const VkInstance &instance) const -> boost::leaf::result<VkSurfaceKHR> {
         auto *surface = VkSurfaceKHR();
         const auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
