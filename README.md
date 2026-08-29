@@ -1,6 +1,39 @@
 # mycraft-vulkan
 
+## Compiling
+
+This project uses `vcpkg` to install dependencies. Make sure you already have
+`vcpkg` and the Vulkan SDK (not required if the required tools are already
+installed separately) set up, then choose one of the following:
+
+### Debug Build
+
+```bash
+cd <project directory>
+cmake --preset debug
+cmake --build --preset debug
+```
+
+### Release Build
+
+```bash
+cd <project directory>
+cmake --preset release
+cmake --build --preset release
+```
+
+The presets use `clang++` by default.
+
 ## Development
+
+After configuring the project, a `compile_commands.json` symlink will be created
+in the project root, which allows it to be easily picked up by `clangd`.
+
+### Guidelines
+
+1. When you change the warning flags to disable for Clang in `.clangd` in
+   `CompileFlags.Add`, remember to sync those changes to `CMakeLists.txt` in the
+   `CLANG_WARNINGS` variable as well.
 
 ### Error Handling
 
@@ -41,6 +74,11 @@ sensible, this project applies following rules on top of LEAF:
    `boost::leaf::result` to return information not specific to any particular
    error type. For example, the `BOOST_LEAF_NEW_ERROR` macro always attaches an
    extra `e_source_location` object.
+
+4. If a `boost::leaf::result` needs to wrap another `boost::leaf::result`, store
+   the wrapped `boost::leaf::result` in a error info type, and document which
+   function returns that wrapped `boost::leaf::result`, so users know how to
+   handle it.
 
 For example, if you have this function:
 

@@ -1,8 +1,9 @@
 {
-  "builtin-baseline": "a0b1c8d3a477c1cb4813d8e127a56961707ca42b",
+  "builtin-baseline": "ea1a7396b05637a53bf23c078647ecc0edee4b80",
   "dependencies": [
+    "boost-dll",
     "boost-leaf",
-    "entt",
+    "cli11",
     "fastgltf",
     {
       "name": "glfw3",
@@ -10,13 +11,13 @@
         "wayland"
       ]
     },
+    "flecs",
     "glm",
     "ktx",
+    "magic-enum",
     "quill",
     "vk-bootstrap",
     "vulkan-headers",
-    "vulkan-memory-allocator",
-    "magic-enum",
-    "cli11"
+    "vulkan-memory-allocator"
   ]
 }

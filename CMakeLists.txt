@@ -12,12 +12,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(PROJECT_IS_TOP_LEVEL)
     set(COMPILE_COMMANDS_LINK_TARGET
-        "${CMAKE_BINARY_DIR}/compile_commands.json")
+        "${PROJECT_BINARY_DIR}/compile_commands.json")
     cmake_path(RELATIVE_PATH COMPILE_COMMANDS_LINK_TARGET
-        BASE_DIRECTORY "${CMAKE_SOURCE_DIR}")
+        BASE_DIRECTORY "${PROJECT_SOURCE_DIR}")
     file(CREATE_LINK
         "${COMPILE_COMMANDS_LINK_TARGET}"
-        "${CMAKE_SOURCE_DIR}/compile_commands.json"
+        "${PROJECT_SOURCE_DIR}/compile_commands.json"
         SYMBOLIC)
 endif()
 
@@ -69,35 +69,36 @@ if(ENABLE_CLANG_TIDY)
 
     if(CLANG_TIDY)
         set_target_properties(mycraft-vulkan PROPERTIES
-            CXX_CLANG_TIDY "${CLANG_TIDY};-p;${CMAKE_BINARY_DIR}")
+            CXX_CLANG_TIDY "${CLANG_TIDY};-p;${PROJECT_BINARY_DIR}")
     else()
         message(WARNING "ENABLE_CLANG_TIDY is enabled but clang-tidy is not found. Skipping.")
     endif()
 endif()
 
-find_package(quill CONFIG REQUIRED)
-find_package(EnTT CONFIG REQUIRED)
-find_package(Vulkan REQUIRED)
-find_package(VulkanHeaders CONFIG REQUIRED)
-find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS leaf)
+find_package(CLI11 CONFIG REQUIRED)
+find_package(fastgltf CONFIG REQUIRED)
+find_package(flecs CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(Ktx CONFIG REQUIRED)
-find_package(fastgltf CONFIG REQUIRED)
-find_package(Boost REQUIRED COMPONENTS leaf)
+find_package(quill CONFIG REQUIRED)
 find_package(vk-bootstrap CONFIG REQUIRED)
-find_package(CLI11 CONFIG REQUIRED)
-target_link_libraries(mycraft-vulkan
-    PRIVATE quill::quill
-    PRIVATE EnTT::EnTT
-    PRIVATE Vulkan::Headers
-    PRIVATE GPUOpen::VulkanMemoryAllocator
-    PRIVATE glfw
-    PRIVATE glm::glm
-    PRIVATE KTX::ktx
-    PRIVATE fastgltf::fastgltf
-    PRIVATE Boost::leaf
-    PRIVATE vk-bootstrap::vk-bootstrap
-    PRIVATE CLI11::CLI11)
+find_package(Vulkan REQUIRED)
+find_package(VulkanHeaders CONFIG REQUIRED)
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+target_link_libraries(mycraft-vulkan PRIVATE
+    $<IF:$<TARGET_EXISTS:flecs::flecs>,flecs::flecs,flecs::flecs_static>
+    Boost::leaf
+    CLI11::CLI11
+    fastgltf::fastgltf
+    glfw
+    glm::glm
+    GPUOpen::VulkanMemoryAllocator
+    KTX::ktx
+    quill::quill
+    vk-bootstrap::vk-bootstrap
+    Vulkan::Headers)
 add_subdirectory(src)
 add_subdirectory(include/mycraft-vulkan)
+add_subdirectory(assets assets-cmake) # Rename to assets-cmake to avoid conflict with my assets

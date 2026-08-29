@@ -11,11 +11,15 @@
 #include <boost/leaf/error.hpp>
 #include <boost/leaf/result.hpp>
 #include <cstdint>
+#include <flecs.h>
+#include <flecs/addons/cpp/c_types.hpp>
+#include <flecs/addons/cpp/world.hpp>
 #include <optional>
 #include <quill/HelperMacros.h>
 #include <quill/core/LogLevel.h>
 #include <quill/std/Vector.h> // IWYU pragma: keep (required by quill)
 #include <ranges>
+#include <thread>
 #include <utility>
 #include <vector>
 #include <vulkan/vk_platform.h>
@@ -72,7 +76,7 @@ class App {
         main_loop();
     }
 
-    /// @return @ref App The created @ref App, or @ref AppCreationError.
+    /// @return The created @ref App, or @ref AppCreationError.
     static auto create(const Config &config) -> boost::leaf::result<App> {
         auto window = create_window();
         if (!window) {
@@ -107,12 +111,14 @@ class App {
         auto swapchain_images = *vk_swapchain_images_result | std::views::transform([](VkImage image) { return vk::Image(image); }) |
                                 std::ranges::to<std::vector<vk::Image>>();
         BOOST_LEAF_AUTO(swapchain_image_views, create_swapchain_image_views(device, swapchain_images, vk::Format(vkb_swapchain.image_format)));
-        return App(config, std::move(*window), std::move(context), std::move(instance), std::move(debug_messenger), std::move(surface),
-                   std::move(physical_device), std::move(device), std::move(graphics_queue), std::move(swapchain), std::move(swapchain_images));
+        auto world = create_world(config);
+        return App(std::move(world), std::move(*window), std::move(context), std::move(instance), std::move(debug_messenger), std::move(surface),
+                   std::move(physical_device), std::move(device), std::move(graphics_queue), std::move(swapchain), std::move(swapchain_images),
+                   std::move(swapchain_image_views));
     }
 
   private:
-    Config config;
+    flecs::world world;
     GlfwWindow window;
     vk::raii::Context context;
     vk::raii::Instance instance;
@@ -126,23 +132,31 @@ class App {
     std::vector<vk::raii::ImageView> swapchain_image_views;
     static constexpr auto WINDOW_HEIGHT = 600;
     static constexpr auto WINDOW_WIDTH = 800;
-    static constexpr auto REQUIRED_DEVICE_EXTENSIONS = std::array<const char *, 0> {};
+    static constexpr auto REQUIRED_DEVICE_EXTENSIONS = std::array { vk::EXTShaderObjectExtensionName, vk::EXTDescriptorHeapExtensionName };
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-designated-field-initializers"
     static constexpr auto REQUIRED_DEVICE_FEATURES = VkPhysicalDeviceFeatures {};
     static constexpr auto REQUIRED_DEVICE_FEATURES_11 = VkPhysicalDeviceVulkan11Features { .shaderDrawParameters = VK_TRUE };
-    static constexpr auto REQUIRED_DEVICE_FEATURES_12 = VkPhysicalDeviceVulkan12Features {};
-    static constexpr auto REQUIRED_DEVICE_FEATURES_13 = VkPhysicalDeviceVulkan13Features { .dynamicRendering = VK_TRUE };
-    static constexpr auto REQUIRED_DEVICE_FEATURES_14 = VkPhysicalDeviceVulkan14Features {};
+    static constexpr auto REQUIRED_DEVICE_FEATURES_12 =
+        VkPhysicalDeviceVulkan12Features { .scalarBlockLayout = VK_TRUE, .timelineSemaphore = VK_TRUE, .bufferDeviceAddress = VK_TRUE };
+    static constexpr auto REQUIRED_DEVICE_FEATURES_13 = VkPhysicalDeviceVulkan13Features { .dynamicRendering = VK_TRUE, .maintenance4 = VK_TRUE };
+    static constexpr auto REQUIRED_DEVICE_FEATURES_14 =
+        VkPhysicalDeviceVulkan14Features { .maintenance5 = VK_TRUE, .maintenance6 = VK_TRUE, .hostImageCopy = VK_TRUE };
+    static constexpr auto REQUIRED_DEVICE_FEATURE_SHADER_OBJECT =
+        VkPhysicalDeviceShaderObjectFeaturesEXT { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT, .shaderObject = VK_TRUE };
+    static constexpr auto REQUIRED_DEVICE_FEATURE_DESCRIPTOR_HEAP =
+        VkPhysicalDeviceDescriptorHeapFeaturesEXT { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_HEAP_FEATURES_EXT,
+                                                    .descriptorHeap = VK_TRUE };
 #pragma clang diagnostic pop
 
-    App(const Config &config, GlfwWindow &&window, vk::raii::Context &&context, vk::raii::Instance &&instance,
+    App(flecs::world &&world, GlfwWindow &&window, vk::raii::Context &&context, vk::raii::Instance &&instance,
         vk::raii::DebugUtilsMessengerEXT &&debug_messenger, vk::raii::SurfaceKHR &&surface, vk::raii::PhysicalDevice &&physical_device,
-        vk::raii::Device &&device, vk::raii::Queue &&graphics_queue, vk::raii::SwapchainKHR &&swapchain, std::vector<vk::Image> &&swapchain_images)
-        : config(config), window(std::move(window)), context(std::move(context)), instance(std::move(instance)),
+        vk::raii::Device &&device, vk::raii::Queue &&graphics_queue, vk::raii::SwapchainKHR &&swapchain, std::vector<vk::Image> &&swapchain_images,
+        std::vector<vk::raii::ImageView> swapchain_image_views)
+        : world(std::move(world)), window(std::move(window)), context(std::move(context)), instance(std::move(instance)),
           debug_messenger(std::move(debug_messenger)), surface(std::move(surface)), physical_device(std::move(physical_device)),
           device(std::move(device)), graphics_queue(std::move(graphics_queue)), swapchain(std::move(swapchain)),
-          swapchain_images(std::move(swapchain_images)) {
+          swapchain_images(std::move(swapchain_images)), swapchain_image_views(std::move(swapchain_image_views)) {
     }
 
     static auto create_window() -> std::optional<GlfwWindow> {
@@ -157,7 +171,6 @@ class App {
         }
     }
 
-    /// @return The created `vkb::Instance`, or @ref AppCreationError.
     static auto create_instance(quill::LogLevel log_level) -> boost::leaf::result<vkb::Instance> {
         auto instance_builder = vkb::InstanceBuilder();
         instance_builder.set_app_name("mycraft-vulkan")
@@ -212,7 +225,6 @@ class App {
         return vk::False;
     }
 
-    /// @return The selected `vkb::PhysicalDevice`, or @ref AppCreationError.
     static auto create_physical_device(const vkb::Instance &instance, const VkSurfaceKHR &surface) -> boost::leaf::result<vkb::PhysicalDevice> {
         auto physical_device_selector = vkb::PhysicalDeviceSelector(instance, surface)
                                             .set_minimum_version(1, 4)
@@ -221,7 +233,9 @@ class App {
                                             .set_required_features_11(REQUIRED_DEVICE_FEATURES_11)
                                             .set_required_features_12(REQUIRED_DEVICE_FEATURES_12)
                                             .set_required_features_13(REQUIRED_DEVICE_FEATURES_13)
-                                            .set_required_features_14(REQUIRED_DEVICE_FEATURES_14);
+                                            .set_required_features_14(REQUIRED_DEVICE_FEATURES_14)
+                                            .add_required_extension_features(REQUIRED_DEVICE_FEATURE_SHADER_OBJECT)
+                                            .add_required_extension_features(REQUIRED_DEVICE_FEATURE_DESCRIPTOR_HEAP);
         const auto candidate_physical_device_names_result = physical_device_selector.select_device_names();
         if (!candidate_physical_device_names_result) {
             LOG_WARNING("Could not get candidate physical device names. Error: {}", candidate_physical_device_names_result.full_error());
@@ -249,7 +263,6 @@ class App {
         return std::move(*suitable_physical_device);
     }
 
-    /// @return The created `vkb::Device`, or @ref AppCreationError.
     static auto create_device(const vkb::PhysicalDevice &physical_device) -> boost::leaf::result<vkb::Device> {
         const auto device_builder = vkb::DeviceBuilder(physical_device);
         auto device_result = device_builder.build();
@@ -260,7 +273,6 @@ class App {
         return std::move(*device_result);
     }
 
-    /// @return The created `vkb::Swapchain`, or @ref AppCreationError.
     static auto create_swapchain(const vkb::Device &device) -> boost::leaf::result<vkb::Swapchain> {
         const auto swapchain_builder = vkb::SwapchainBuilder(device);
         auto swapchain_result = swapchain_builder.build();
@@ -272,19 +284,15 @@ class App {
         return *swapchain_result;
     }
 
-    /// @return The created image views, or @ref AppCreationError.
     static auto create_swapchain_image_views(const vk::raii::Device &device, const std::vector<vk::Image> &swapchain_images,
                                              const vk::Format &swapchain_image_format) -> boost::leaf::result<std::vector<vk::raii::ImageView>> {
         auto result = std::vector<vk::raii::ImageView>();
         for (const auto &swapchain_image : swapchain_images) {
-            const auto image_view_create_info = vk::ImageViewCreateInfo { .image = swapchain_image,
-                                                                          .viewType = vk::ImageViewType::e2D,
-                                                                          .format = swapchain_image_format,
-                                                                          .subresourceRange = { .aspectMask = vk::ImageAspectFlagBits::eColor,
-                                                                                                .baseMipLevel = 0,
-                                                                                                .levelCount = 1,
-                                                                                                .baseArrayLayer = 0,
-                                                                                                .layerCount = 1 } };
+            const auto image_view_create_info =
+                vk::ImageViewCreateInfo { .image = swapchain_image,
+                                          .viewType = vk::ImageViewType::e2D,
+                                          .format = swapchain_image_format,
+                                          .subresourceRange = { .aspectMask = vk::ImageAspectFlagBits::eColor, .levelCount = 1, .layerCount = 1 } };
             auto swapchain_image_view = device.createImageView(image_view_create_info);
             if (!swapchain_image_view) {
                 LOG_ERROR("Could not create the swapchain image views. Error: {}", swapchain_image_view.error());
@@ -294,6 +302,17 @@ class App {
             result.emplace_back(std::move(*swapchain_image_view));
         }
         return result;
+    }
+
+    static auto create_world(const Config &config) -> flecs::world {
+        auto core_count = std::thread::hardware_concurrency();
+        if (core_count == 0) {
+            core_count = 1;
+        }
+        auto world = flecs::world();
+        world.set_threads(static_cast<int32_t>(core_count));
+        world.component<Config>().add(flecs::Singleton).set(config);
+        return world;
     }
 };
 } // namespace mycraft_vulkan

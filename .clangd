@@ -1,5 +1,22 @@
 If:
   PathExclude: build/.*
+CompileFlags:
+  Add: 
+    - -Weverything
+    - -Wno-c++98-compat
+    - -Wno-c++98-compat-pedantic
+    - -Wno-pre-c23-compat
+    - -Wno-reserved-macro-identifier
+    - -Wno-padded
+    - -Wno-unsafe-buffer-usage
+    - -Wno-empty-translation-unit
+    - -Wno-switch-default
+    - -Wno-weak-vtables
+    - -Wno-exit-time-destructors
+    - -Wno-global-constructors
+    - -Wno-unused-macros
+    - -Wno-shadow-field-in-constructor
+    - -ferror-limit=0
 Diagnostics:
   ClangTidy:
     Add: "*"
@@ -23,9 +40,12 @@ Diagnostics:
       readability-implicit-bool-conversion.AllowPointerConditions: true
       modernize-use-trailing-return-type.TransformLambdas: none
       readability-redundant-inline-specifier.StrictMode: true
+      bugprone-exception-escape.CheckMain: false
     FastCheckFilter: None
   Includes:
     AnalyzeAngledIncludes: true
+    IgnoreHeader:
+      - flecs(/.*|[.]h) # flecs triggers false positives
   MissingIncludes: Strict
 Completion:
   MacroFilter: FuzzyMatch
