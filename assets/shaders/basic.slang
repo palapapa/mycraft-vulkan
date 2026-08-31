@@ -8,7 +8,7 @@ struct VertexOutput {
 };
 
 [shader("vertex")]
-func vertex(vertex_id: uint: SV_VertexID) -> VertexOutput {
+func vertex(vertex_id: uint : SV_VertexID) -> VertexOutput {
     var output = VertexOutput();
     output.sv_position = float4(positions[vertex_id], 0.0, 1.0);
     output.color = colors[vertex_id];

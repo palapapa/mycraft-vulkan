@@ -32,7 +32,8 @@ target_compile_definitions(mycraft-vulkan PRIVATE
     QUILL_DISABLE_NON_PREFIXED_MACROS
     QUILL_DETAILED_FUNCTION_NAME
     GLFW_INCLUDE_VULKAN
-    GLFW_INCLUDE_NONE)
+    GLFW_INCLUDE_NONE
+    BOOST_DLL_USE_STD_FS)
 set(GCC_WARNINGS
     -Wall
     -Wextra
@@ -75,7 +76,7 @@ if(ENABLE_CLANG_TIDY)
     endif()
 endif()
 
-find_package(Boost REQUIRED COMPONENTS leaf)
+find_package(Boost REQUIRED COMPONENTS leaf dll)
 find_package(CLI11 CONFIG REQUIRED)
 find_package(fastgltf CONFIG REQUIRED)
 find_package(flecs CONFIG REQUIRED)
@@ -89,6 +90,7 @@ find_package(VulkanHeaders CONFIG REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 target_link_libraries(mycraft-vulkan PRIVATE
     $<IF:$<TARGET_EXISTS:flecs::flecs>,flecs::flecs,flecs::flecs_static>
+    Boost::dll
     Boost::leaf
     CLI11::CLI11
     fastgltf::fastgltf

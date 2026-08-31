@@ -10,7 +10,7 @@
 
 auto main(int argc, char *argv[]) -> int {
     using namespace mycraft_vulkan; // NOLINT(google-build-using-namespace)
-    auto config = parse_arguments(argc, argv);
+    auto config = create_config(argc, argv);
     setup_logger(config.log_level);
     LOG_INFO("App starting");
     LOG_INFO("Using GLFW version {}.", glfwGetVersionString());

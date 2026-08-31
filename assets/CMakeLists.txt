@@ -82,16 +82,20 @@ foreach(SHADER IN LISTS SHADERS)
         "${ASSETS_SOURCE}/shaders"
         "${SHADER}")
     cmake_path(REPLACE_EXTENSION SHADER_RELATIVE_PATH
-        LAST_ONLY ".spv"
+        LAST_ONLY .spv
         OUTPUT_VARIABLE SHADER_OUTPUT_RELATIVE_PATH)
     set(SHADER_OUTPUT
         "${ASSETS_DESTINATION}/shaders/${SHADER_OUTPUT_RELATIVE_PATH}")
     set(SHADER_DEPFILE
         "${CMAKE_CURRENT_BINARY_DIR}/shader-depfiles/${SHADER_RELATIVE_PATH}.d")
+    cmake_path(REPLACE_EXTENSION SHADER_RELATIVE_PATH
+        LAST_ONLY .json
+        OUTPUT_VARIABLE SHADER_REFLECTION_OUTPUT_RELATIVE_PATH)
+    set(SHADER_REFLECTION_OUTPUT
+        "${ASSETS_DESTINATION}/shaders/${SHADER_REFLECTION_OUTPUT_RELATIVE_PATH}")
     cmake_path(GET SHADER_OUTPUT PARENT_PATH SHADER_OUTPUT_DIRECTORY)
     cmake_path(GET SHADER_DEPFILE PARENT_PATH SHADER_DEPFILE_DIRECTORY)
-    add_custom_command(
-        OUTPUT "${SHADER_OUTPUT}"
+    add_custom_command(OUTPUT "${SHADER_OUTPUT}" "${SHADER_REFLECTION_OUTPUT}"
         COMMAND "${CMAKE_COMMAND}" -E make_directory "${SHADER_OUTPUT_DIRECTORY}" "${SHADER_DEPFILE_DIRECTORY}"
         COMMAND "${SLANGC}"
         "${SHADER}"
@@ -100,13 +104,15 @@ foreach(SHADER IN LISTS SHADERS)
         -profile spirv_1_6
         -capability spvDescriptorHeapEXT
         -fvk-use-entrypoint-name
-        "$<$<CONFIG:Debug>:-g3>"
-        "$<$<CONFIG:Release>:-O3>"
+        -fvk-use-scalar-layout
+        "$<$<CONFIG:Debug,RelWithDebInfo>:-g3>"
+        "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:-O3>"
         -depfile "${SHADER_DEPFILE}"
         -I "${ASSETS_SOURCE}/shaders/imports"
         -Wall
         -Wpedantic
         -o "${SHADER_OUTPUT}"
+        -reflection-json "${SHADER_REFLECTION_OUTPUT}"
 
         # Make sure we compile shaders after assets have been copied to avoid
         # the compiled shaders getting deleted.

@@ -22,6 +22,22 @@ cmake --preset release
 cmake --build --preset release
 ```
 
+### Release with Debug Info Build
+
+```bash
+cd <project directory>
+cmake --preset rel-with-deb-info
+cmake --build --preset rel-with-deb-info
+```
+
+### Minimum Size Release Build
+
+```bash
+cd <project directory>
+cmake --preset min-size-rel
+cmake --build --preset min-size-rel
+```
+
 The presets use `clang++` by default.
 
 ## Development

@@ -171,7 +171,7 @@ class App {
         }
     }
 
-    static auto create_instance(quill::LogLevel log_level) -> boost::leaf::result<vkb::Instance> {
+    static auto create_instance([[maybe_unused]] quill::LogLevel log_level) -> boost::leaf::result<vkb::Instance> {
         auto instance_builder = vkb::InstanceBuilder();
         instance_builder.set_app_name("mycraft-vulkan")
             .set_app_version(0, 0)

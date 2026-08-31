@@ -2,6 +2,8 @@
 #include "CLI/CLI.hpp"
 #include "formatters.hpp"
 #include "vulkan/vulkan.hpp"
+#include <boost/dll.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
 #include <cstdlib>
 #include <filesystem>
 #include <memory>
@@ -56,9 +58,10 @@ constexpr auto log_level_to_vk_debug_utils_message_serverity_flags(quill::LogLev
 
 struct Config {
     quill::LogLevel log_level;
+    std::filesystem::path assets_path;
 };
 
-inline auto parse_arguments(int argc, char *argv[]) -> Config { // NOLINT(modernize-avoid-c-arrays)
+inline auto create_config(int argc, char *argv[]) -> Config { // NOLINT(modernize-avoid-c-arrays)
     // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic): Checked bounds.
     const auto executable_name =
         argc > 0 && argv[0] != nullptr && argv[0][0] != '\0' ? std::filesystem::path(argv[0]).filename().string() : std::string("mycraft-vulkan");
@@ -71,12 +74,18 @@ inline auto parse_arguments(int argc, char *argv[]) -> Config { // NOLINT(modern
         ->type_name("LEVEL")
         ->transform(checked_transformer_with_sorted_keys(LOG_LEVEL_OPTION_VALUE_TO_QUILL_LOG_LEVEL, CLI::ignore_case))
         ->default_val(LOG_LEVEL_INFO_OPTION_VALUE);
+    auto assets_path = std::filesystem::path();
+    auto default_assets_path = boost::dll::program_location().parent_path() / "assets";
+    argument_parser.add_option("-a,--assets-path", assets_path, "The path to the assets directory to use.")
+        ->type_name("PATH")
+        ->check(CLI::ExistingDirectory)
+        ->default_val(default_assets_path);
     try {
         argument_parser.parse(argc, argv);
     }
     catch (const CLI::ParseError &e) {
         std::exit(argument_parser.exit(e));
     }
-    return { .log_level = log_level };
+    return { .log_level = log_level, .assets_path = assets_path };
 }
 } // namespace mycraft_vulkan

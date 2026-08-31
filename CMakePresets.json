@@ -18,8 +18,7 @@
       "description": "Configures the project in debug mode.",
       "binaryDir": "build/debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_VERBOSE_MAKEFILE": true
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
@@ -31,20 +30,63 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "rel-with-deb-info",
+      "inherits": "_base",
+      "displayName": "RelWithDebInfo config",
+      "description": "Configures the project in release mode with debug info.",
+      "binaryDir": "build/rel-with-deb-info",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "min-size-rel",
+      "inherits": "_base",
+      "displayName": "MinSizeRel config",
+      "description": "Configures the project in release mode and minimize binary size.",
+      "binaryDir": "build/min-size-rel",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel"
+      }
     }
   ],
   "buildPresets": [
     {
+      "name": "_base",
+      "hidden": true,
+      "displayName": "Base config",
+      "description": "Base buildPreset for other preserts to inherit. Do not use directly.",
+      "verbose": true
+    },
+    {
       "name": "debug",
+      "inherits": "_base",
       "displayName": "Build using the Debug config",
       "description": "Build the project using the build system configured by the \"debug\" preset.",
       "configurePreset": "debug"
     },
     {
       "name": "release",
+      "inherits": "_base",
       "displayName": "Build using the Release config",
       "description": "Build the project using the build system configured by the \"release\" preset.",
       "configurePreset": "release"
+    },
+    {
+      "name": "rel-with-deb-info",
+      "inherits": "_base",
+      "displayName": "Build using the RelWithDebInfo config",
+      "description": "Build the project using the build system configured by the \"rel-with-deb-info\" preset.",
+      "configurePreset": "rel-with-deb-info"
+    },
+    {
+      "name": "min-size-rel",
+      "inherits": "_base",
+      "displayName": "Build using the MinSizeRel config",
+      "description": "Build the project using the build system configured by the \"min-size-rel\" preset.",
+      "configurePreset": "min-size-rel"
     }
   ]
 }
